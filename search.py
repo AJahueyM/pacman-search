@@ -94,8 +94,24 @@ def depthFirstSearch(problem):
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raise_method_not_defined()
+    searchQueue = util.Queue() # Queue for bfs, we analyze the current level before the children
+    visited = []
+    startState = (problem.getStartState(), [])  # Store current state and the path to it
+    searchQueue.push(startState)
+
+    while not searchQueue.isEmpty():  # While there is some state to analyze
+        state = searchQueue.pop()  # Get state to analyze
+        location = state[0]  # Get its location
+        path = state[1]  # Get the action taken to get to this location
+        if location not in visited:  # If we have not visited this location
+            visited.append(location)
+            if problem.isGoalState(location):  # If this location is the target, return taken path
+                return path
+            successors = list(problem.getSuccessors(location))  # Get available nodes from this location
+            for successor in successors:
+                if successor[0] not in visited:  # If we have not visited any of the available nodes
+                    searchQueue.push((successor[0], path + [successor[1]]))  # Add successor to the search queue
+    return []
 
 
 def uniformCostSearch(problem):
@@ -114,9 +130,34 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raise_method_not_defined()
+    openQueue = util.PriorityQueue()
+    startLoc = problem.getStartState()
+    visited = []
+    current = {"loc": startLoc, "parent": None, "h": heuristic(startLoc, problem), "g": 0, "act": None}
+    current["f"] = current["g"] + current["h"]
 
+    openQueue.push(current, current["f"])
+    while not openQueue.isEmpty():
+        current = openQueue.pop()
+        if visited.__contains__(current["loc"]):
+            continue
+        visited.append(current["loc"])
+
+        if problem.isGoalState(current["loc"]):
+            break
+        for successor in problem.getSuccessors(current["loc"]):
+            if not visited.__contains__(successor[0]):
+                successor_state = {"loc": successor[0], "act": successor[1], "parent": current, "h": heuristic(successor[0], problem),
+                                   "g": successor[2] + current["g"]}
+                successor_state["f"] = successor_state["g"] + successor_state["h"]
+                openQueue.push(successor_state, successor_state["f"])
+
+    actions = []
+
+    while current is not None and current["act"] is not None:
+        actions.insert(0, current["act"])
+        current = current["parent"]
+    return actions
 
 # Abbreviations
 bfs = breadthFirstSearch
